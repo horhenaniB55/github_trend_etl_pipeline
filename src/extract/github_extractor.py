@@ -74,8 +74,8 @@ def lambda_handler(event, context):
     extractor = GitHubExtractor(token)
     
     categories = {
-        "productivity": "topic:productivity OR topic:automation OR topic:task-management OR topic:notes",
-        "development": "topic:devops OR topic:ci-cd OR topic:testing OR topic:api OR topic:developer-tools"
+        "productivity": "productivity",
+        "development": "devops"
     }
     
     s3_client = boto3.client("s3")

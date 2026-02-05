@@ -97,7 +97,7 @@ class DataLoader:
     
     def load_to_database(self, repos: List[Dict], snapshot_date: str):
         """Load repositories and metrics to database"""
-        conn = psycopg2.connect(**self.db_config)
+        conn = psycopg2.connect(**self.db_config, sslmode='require')
         cursor = conn.cursor()
         
         try:
