@@ -37,6 +37,13 @@ data/processed/
 *.log
 logs/
 
+# Lambda packages
+lambda/
+
+# Markdown (except README)
+*.md
+!README.md
+
 #kiro-cli
 *.kiro*
 
