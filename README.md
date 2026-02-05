@@ -1,30 +1,32 @@
 # GitHub Trending ETL Pipeline
 
-## Project Status: Phase 2 - Extract Layer ✅
+## Project Status: Phase 2 Complete ✅
 
 ### Completed
 - ✅ Project structure created
 - ✅ GitHub API extractor implemented and tested
-- ✅ Successfully extracting repository data
-- ✅ Data saved locally in JSON format
+- ✅ Extracting both productivity AND development categories
+- ✅ 200 repositories extracted (100 per category)
+- ✅ S3 bucket created: `github-trending-etl-bucket`
+- ✅ Data uploaded to S3 successfully
 
 ### Current Data
-- Extracted 3 productivity repositories
-- Data includes: stars, forks, watchers, topics, language, license
-- Saved to: `data/raw/productivity_2026-02-05.json`
+- **Productivity**: 100 repos (e.g., PowerToys - 129K stars)
+- **Development**: 100 repos (e.g., free-for-dev - 117K stars)
+- **S3 Location**: `s3://github-trending-etl-bucket/raw/2026-02-05/`
 
 ## Next Steps
 
-### 1. Enhance Extractor
-- [ ] Add better query filters (use topic: prefix)
-- [ ] Extract both productivity AND development categories
+### 1. ~~Enhance Extractor~~ ✅
+- ✅ Extract both productivity AND development categories
+- ✅ Successfully extracting 100 repos per category
 - [ ] Add rate limiting handling
 - [ ] Add pagination for >100 results
 
-### 2. Create S3 Bucket
-- [ ] Create S3 bucket: `github-trending-etl-bucket`
-- [ ] Set up folder structure (raw/, processed/, exports/)
-- [ ] Test upload from Lambda
+### 2. ~~Create S3 Bucket~~ ✅
+- ✅ Create S3 bucket: `github-trending-etl-bucket`
+- ✅ Set up folder structure (raw/, processed/, exports/)
+- ✅ Test upload - working!
 
 ### 3. Transform Layer (Glue Job)
 - [ ] Create data cleaning script
