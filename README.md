@@ -160,10 +160,6 @@ python src/transform/data_transformer.py
 
 ---
 
-## 🗄️ Database Schema
-
-![Database Schema](screenshots/Screenshot_20260205_180601.png)
-
 ### Tables
 ```sql
 repositories (repo_id, repo_name, owner, url, category, language, license)
@@ -257,9 +253,6 @@ categories (category_id, category_name, total_repos, avg_stars, avg_activity_sco
 │   ├── state-machine.json           # Step Functions definition
 │   ├── trigger-pipeline.sh          # Manual trigger script
 │   └── README.md                    # Orchestration docs
-├── docs/
-│   ├── LOOKER_STUDIO_SETUP.md       # Dashboard setup guide
-│   └── LOOKER_STUDIO_VISUAL_GUIDE.md # Step-by-step visuals
 ├── screenshots/                     # Project screenshots
 ├── requirements.txt                 # Python dependencies
 └── README.md                        # This file
@@ -312,15 +305,6 @@ categories (category_id, category_name, total_repos, avg_stars, avg_activity_sco
 *Based on weekly execution (4 runs/month)*
 
 ---
-
-## 🔍 Monitoring & Operations
-
-### AWS Console Access
-- **Step Functions**: [View Executions](https://console.aws.amazon.com/states/home?region=us-east-1#/statemachines)
-- **Lambda Functions**: [View Logs](https://console.aws.amazon.com/lambda/home?region=us-east-1#/functions)
-- **Glue Jobs**: [View Runs](https://console.aws.amazon.com/glue/home?region=us-east-1#/v2/etl-configuration/jobs)
-- **RDS Database**: [View Instance](https://console.aws.amazon.com/rds/home?region=us-east-1#database:id=github-trending-db)
-- **S3 Bucket**: [View Data](https://s3.console.aws.amazon.com/s3/buckets/github-trending-etl-bucket)
 
 ### Manual Operations
 ```bash
@@ -402,13 +386,6 @@ aws s3 ls s3://github-trending-etl-bucket/processed/2026-02-05/
 
 ---
 
-## 📝 Documentation
-
-- [Looker Studio Setup Guide](docs/LOOKER_STUDIO_SETUP.md)
-- [Step-by-Step Visual Guide](docs/LOOKER_STUDIO_VISUAL_GUIDE.md)
-- [Orchestration README](orchestration/README.md)
-
----
 
 ## 🏆 Project Achievements
 
@@ -448,33 +425,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 *Last Updated: February 2026*
 
-## Next Steps
-
-### 1. ~~Enhance Extractor~~ ✅
-- ✅ Extract both productivity AND development categories
-- ✅ Successfully extracting 100 repos per category
-- [ ] Add rate limiting handling
-- [ ] Add pagination for >100 results
-
-### 2. ~~Create S3 Bucket~~ ✅
-- ✅ Create S3 bucket: `github-trending-etl-bucket`
-- ✅ Set up folder structure (raw/, processed/, exports/)
-- ✅ Test upload - working!
-
-### 3. Transform Layer (Glue Job)
-- ✅ Create data cleaning script
-- ✅ Calculate metrics (star velocity, growth rate)
-- ✅ Implement trend analysis
-
-### 4. Load Layer (RDS + Lambda)
-- ✅ Set up RDS PostgreSQL instance
-- ✅ Create database schema
-- ✅ Implement data loader Lambda
-
-### 5. Orchestration (Step Functions)
-- ✅ Design state machine
-- ✅ Set up EventBridge trigger
-- [ ] Test end-to-end pipeline
 
 ## Quick Start
 
