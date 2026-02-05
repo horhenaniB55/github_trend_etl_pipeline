@@ -1,0 +1,43 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+*.egg-info/
+dist/
+build/
+
+# AWS
+.aws/
+*.zip
+
+# Environment
+.env
+.env.local
+config.json
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Data
+data/raw/
+data/processed/
+*.csv
+*.json
+*.parquet
+
+# Logs
+*.log
+logs/
+
+#kiro-cli
+*.kiro*
+
+project.md
