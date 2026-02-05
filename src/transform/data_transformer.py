@@ -1,7 +1,11 @@
 import json
 import boto3
+import logging
 from datetime import datetime
 from typing import List, Dict
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 class DataTransformer:
     def __init__(self, s3_bucket: str):
@@ -10,16 +14,20 @@ class DataTransformer:
     
     def load_from_s3(self, key: str) -> List[Dict]:
         """Load JSON data from S3"""
-        response = self.s3_client.get_object(Bucket=self.bucket, Key=key)
-        return json.loads(response['Body'].read())
+        try:
+            response = self.s3_client.get_object(Bucket=self.bucket, Key=key)
+            return json.loads(response['Body'].read())
+        except Exception as e:
+            logger.error(f"Failed to load from S3 {key}: {e}")
+            raise
     
     def calculate_metrics(self, repos: List[Dict]) -> List[Dict]:
         """Calculate derived metrics for repositories"""
         for repo in repos:
-            # Activity score: weighted combination of metrics
-            stars = repo.get('stars', 0)
-            forks = repo.get('forks', 0)
-            watchers = repo.get('watchers', 0)
+            # Validate data
+            stars = max(0, repo.get('stars', 0))
+            forks = max(0, repo.get('forks', 0))
+            watchers = max(0, repo.get('watchers', 0))
             
             repo['activity_score'] = round(
                 (stars * 0.5) + (forks * 0.3) + (watchers * 0.2), 2

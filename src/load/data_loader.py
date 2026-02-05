@@ -1,8 +1,13 @@
 import json
 import boto3
 import psycopg2
+import psycopg2.extras
+import logging
 from datetime import datetime
 from typing import List, Dict
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 class DataLoader:
     def __init__(self, db_config: Dict, s3_bucket: str):
@@ -15,27 +20,45 @@ class DataLoader:
         response = self.s3_client.get_object(Bucket=self.bucket, Key=key)
         return json.loads(response['Body'].read())
     
-    def upsert_repository(self, cursor, repo: Dict) -> int:
-        """Insert or update repository, return repo_id"""
-        cursor.execute("""
-            INSERT INTO repositories (repo_name, owner, url, description, language, category, license, created_at)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
-            ON CONFLICT (owner, repo_name) 
-            DO UPDATE SET 
-                description = EXCLUDED.description,
-                language = EXCLUDED.language,
-                license = EXCLUDED.license
-            RETURNING repo_id
-        """, (
-            repo['repo_name'], repo['owner'], repo['url'], 
-            repo.get('description'), repo.get('language'), 
-            repo['category'], repo.get('license'), repo['created_at']
-        ))
-        return cursor.fetchone()[0]
+    def batch_upsert_repositories(self, cursor, repos: List[Dict]) -> Dict[str, int]:
+        """Batch insert repositories, return mapping of owner/name to repo_id"""
+        repo_map = {}
+        
+        for repo in repos:
+            cursor.execute("""
+                INSERT INTO repositories (repo_name, owner, url, description, language, category, license, created_at)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                ON CONFLICT (owner, repo_name) 
+                DO UPDATE SET 
+                    description = EXCLUDED.description,
+                    language = EXCLUDED.language,
+                    license = EXCLUDED.license
+                RETURNING repo_id
+            """, (
+                repo['repo_name'], repo['owner'], repo['url'], 
+                repo.get('description'), repo.get('language'), 
+                repo['category'], repo.get('license'), repo['created_at']
+            ))
+            repo_id = cursor.fetchone()[0]
+            repo_map[f"{repo['owner']}/{repo['repo_name']}"] = repo_id
+        
+        return repo_map
     
-    def upsert_metrics(self, cursor, repo_id: int, repo: Dict, snapshot_date: str):
-        """Insert or update metrics"""
-        cursor.execute("""
+    def batch_upsert_metrics(self, cursor, repos: List[Dict], repo_map: Dict[str, int], snapshot_date: str):
+        """Batch insert metrics"""
+        metrics_data = []
+        
+        for repo in repos:
+            key = f"{repo['owner']}/{repo['repo_name']}"
+            repo_id = repo_map[key]
+            
+            metrics_data.append((
+                repo_id, snapshot_date, repo['stars'], repo['forks'], 
+                repo['watchers'], repo['open_issues'], repo['activity_score'],
+                repo['fork_ratio'], repo['rank']
+            ))
+        
+        psycopg2.extras.execute_batch(cursor, """
             INSERT INTO metrics (repo_id, snapshot_date, stars, forks, watchers, open_issues, 
                                 activity_score, fork_ratio, rank_in_category)
             VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
@@ -48,11 +71,7 @@ class DataLoader:
                 activity_score = EXCLUDED.activity_score,
                 fork_ratio = EXCLUDED.fork_ratio,
                 rank_in_category = EXCLUDED.rank_in_category
-        """, (
-            repo_id, snapshot_date, repo['stars'], repo['forks'], 
-            repo['watchers'], repo['open_issues'], repo['activity_score'],
-            repo['fork_ratio'], repo['rank']
-        ))
+        """, metrics_data)
     
     def update_category_summary(self, cursor, category: str):
         """Update category aggregations"""
@@ -82,20 +101,28 @@ class DataLoader:
         cursor = conn.cursor()
         
         try:
-            for repo in repos:
-                repo_id = self.upsert_repository(cursor, repo)
-                self.upsert_metrics(cursor, repo_id, repo, snapshot_date)
+            logger.info(f"Loading {len(repos)} repositories to database")
+            
+            # Batch upsert repositories
+            repo_map = self.batch_upsert_repositories(cursor, repos)
+            logger.info(f"Upserted {len(repo_map)} repositories")
+            
+            # Batch upsert metrics
+            self.batch_upsert_metrics(cursor, repos, repo_map, snapshot_date)
+            logger.info(f"Upserted metrics for {len(repos)} repositories")
             
             # Update category summaries
             categories = set(repo['category'] for repo in repos)
             for category in categories:
                 self.update_category_summary(cursor, category)
+            logger.info(f"Updated {len(categories)} category summaries")
             
             conn.commit()
             return len(repos)
         except Exception as e:
+            logger.error(f"Database load failed: {e}")
             conn.rollback()
-            raise e
+            raise
         finally:
             cursor.close()
             conn.close()
