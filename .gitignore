@@ -43,7 +43,6 @@ lambda/
 # Markdown (except README)
 *.md
 !README.md
-docs/*.md
 
 #kiro-cli
 *.kiro*
