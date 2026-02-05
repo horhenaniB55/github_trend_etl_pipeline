@@ -15,7 +15,7 @@ class GitHubExtractor:
         }
         self.base_url = "https://api.github.com"
     
-    def search_repositories(self, query: str, min_stars: int = 100) -> List[Dict]:
+    def search_repositories(self, query: str, min_stars: int = 50) -> List[Dict]:
         """Search GitHub repositories with filters"""
         since_date = (datetime.now() - timedelta(days=90)).strftime("%Y-%m-%d")
         search_query = f"({query}) stars:>={min_stars} pushed:>={since_date}"
@@ -107,26 +107,29 @@ def lambda_handler(event, context):
 if __name__ == "__main__":
     # Local testing
     import sys
-    token = os.getenv("GITHUB_TOKEN") or sys.argv[1] if len(sys.argv) > 1 else None
+    token = os.getenv("GITHUB_TOKEN") or (sys.argv[1] if len(sys.argv) > 1 else None)
     if not token:
         print("Usage: python github_extractor.py <token> or set GITHUB_TOKEN env var")
         sys.exit(1)
-    print(f"Token loaded: {token[:10]}...")
+    
     extractor = GitHubExtractor(token)
     
-    # Test productivity category with simpler query
-    print("Extracting productivity repos...")
-    data = extractor.extract_category(
-        "productivity",
-        "productivity automation"
-    )
+    categories = {
+        "productivity": "productivity",
+        "development": "devops"
+    }
     
-    # Save locally
     os.makedirs("data/raw", exist_ok=True)
     date_str = datetime.now().strftime("%Y-%m-%d")
-    with open(f"data/raw/productivity_{date_str}.json", "w") as f:
-        json.dump(data, f, indent=2)
     
-    print(f"Extracted {len(data)} repositories")
-    if data:
-        print(f"Sample: {data[0]['repo_name']} - {data[0]['stars']} stars")
+    for category, query in categories.items():
+        print(f"\nExtracting {category} repos...")
+        data = extractor.extract_category(category, query)
+        
+        filepath = f"data/raw/{category}_{date_str}.json"
+        with open(filepath, "w") as f:
+            json.dump(data, f, indent=2)
+        
+        print(f"✓ {len(data)} repos saved to {filepath}")
+        if data:
+            print(f"  Sample: {data[0]['repo_name']} ({data[0]['stars']} stars)")
