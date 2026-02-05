@@ -18,6 +18,10 @@
 - ✅ Glue job deployed and tested
 - ✅ VPC configuration completed
 - ✅ End-to-end pipeline tested successfully
+- ✅ Looker Studio dashboard created
+
+### 📊 Live Dashboard
+**View Dashboard**: https://lookerstudio.google.com/reporting/5e400605-ad2f-4f6f-a1b0-af26093cb85e
 
 ### Current Data
 - **Productivity**: 100 repos (e.g., PowerToys - 129K stars)
